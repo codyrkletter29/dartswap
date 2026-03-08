@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Conversation from '@/models/Conversation';
 import Message from '@/models/Message';
+import User from '@/models/User';
 import { getCurrentUser } from '@/lib/auth';
 import { sendMessageSchema } from '@/lib/validations';
+import { sendMessageNotification } from '@/lib/email';
 import mongoose from 'mongoose';
 
 // GET /api/conversations/[id]/messages - Get all messages in a conversation
@@ -154,6 +156,38 @@ export async function POST(
 
     // Populate sender info
     await message.populate('sender', 'name');
+
+    // Check if recipient needs email notification
+    if (otherParticipantId) {
+      try {
+        const recipient = await User.findById(otherParticipantId);
+        if (recipient) {
+          const now = new Date();
+          const lastActive = recipient.lastActiveAt || recipient.createdAt;
+          const inactiveMinutes = (now.getTime() - lastActive.getTime()) / (1000 * 60);
+          
+          // Send email if user has been inactive for more than 15 minutes
+          const INACTIVE_THRESHOLD_MINUTES = 15;
+          if (inactiveMinutes > INACTIVE_THRESHOLD_MINUTES) {
+            // Await email notification to ensure it completes on serverless platforms
+            try {
+              await sendMessageNotification({
+                recipientEmail: recipient.email,
+                recipientName: recipient.name,
+                senderName: user.name,
+                messagePreview: validatedData.content,
+              });
+            } catch (emailError) {
+              // Log error but don't fail the request
+              console.error('Failed to send email notification:', emailError);
+            }
+          }
+        }
+      } catch (error) {
+        // Log error but don't fail the request
+        console.error('Error checking recipient activity for email notification:', error);
+      }
+    }
 
     return NextResponse.json(
       {

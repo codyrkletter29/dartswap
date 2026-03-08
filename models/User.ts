@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   createdAt: Date;
+  lastActiveAt: Date;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -28,6 +29,10 @@ const UserSchema = new Schema<IUser>({
     select: false, // Don't include password hash in queries by default
   },
   createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  lastActiveAt: {
     type: Date,
     default: Date.now,
   },

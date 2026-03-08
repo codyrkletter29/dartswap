@@ -1,5 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import connectDB from './mongodb';
+import User from '@/models/User';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret-key');
 const TOKEN_NAME = 'auth-token';
@@ -71,4 +73,18 @@ export async function getCurrentUser(): Promise<JWTPayload | null> {
   const token = await getAuthCookie();
   if (!token) return null;
   return verifyToken(token);
+}
+
+/**
+ * Update user's last active timestamp
+ */
+export async function updateUserActivity(userId: string): Promise<void> {
+  try {
+    await connectDB();
+    await User.findByIdAndUpdate(userId, {
+      lastActiveAt: new Date(),
+    });
+  } catch (error) {
+    console.error('Error updating user activity:', error);
+  }
 }
