@@ -225,15 +225,29 @@ Add the following variables for **Production**:
 3. Rename site: **Site settings** → **Change site name** → `dartswap`
 4. Your production URL: `https://dartswap.netlify.app`
 
-#### 4. Custom Domain (Optional)
+#### 4. Custom Domain (Recommended for Production)
 
-To use a custom domain like `dartswap.com`:
+To use your production domain `dartmouthswap.com`:
 
 1. Go to **Site settings** → **Domain management**
 2. Click **"Add custom domain"**
-3. Enter your domain: `dartswap.com`
-4. Follow DNS configuration instructions
-5. Netlify will automatically provision SSL certificate
+3. Enter your domain: `dartmouthswap.com`
+4. Netlify will show the required DNS records
+5. Netlify will automatically provision an SSL certificate after DNS propagates
+
+**DNS Records to Add at Your Registrar**
+
+Add the following DNS records where you purchased `dartmouthswap.com`:
+
+| Type | Host | Value | Notes |
+|------|------|-------|-------|
+| `A` | `@` | `75.2.60.5` | Netlify load balancer IP |
+| `CNAME` | `www` | `dartswap.netlify.app` | Replace with your Netlify app URL |
+
+**Notes**
+- Keep the `A` record exactly as shown.
+- The `CNAME` must match your Netlify site URL (for example `dartswap.netlify.app`).
+- DNS changes can take up to 24-48 hours, but often complete sooner.
 
 ---
 
@@ -264,7 +278,7 @@ Here's a complete breakdown of all environment variables:
 #### `NEXT_PUBLIC_APP_URL`
 - **Purpose:** Base URL for the application (used in emails, redirects)
 - **Dev Example:** `https://dartswap-dev.netlify.app`
-- **Prod Example:** `https://dartswap.netlify.app` or `https://dartswap.com`
+- **Prod Example:** `https://dartmouthswap.com`
 - **Note:** The `NEXT_PUBLIC_` prefix makes it available in browser code
 
 #### Email Variables (`EMAIL_*`)

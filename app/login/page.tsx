@@ -1,11 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+          <div className="w-full max-w-md">
+            <div className="card">
+              <h1 className="text-3xl font-bold text-text mb-2 text-center">
+                Welcome Back
+              </h1>
+              <p className="text-text-secondary text-center mb-8">
+                Loading...
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

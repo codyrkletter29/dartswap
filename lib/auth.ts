@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from 'jose';
+import { SignJWT, jwtVerify, type JWTPayload as JoseJWTPayload } from 'jose';
 import { cookies } from 'next/headers';
 import connectDB from './mongodb';
 import User from '@/models/User';
@@ -7,7 +7,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-
 const TOKEN_NAME = 'auth-token';
 const TOKEN_EXPIRY = '7d'; // 7 days
 
-export interface JWTPayload {
+export interface UserTokenPayload extends JoseJWTPayload {
   userId: string;
   email: string;
   name: string;
@@ -16,7 +16,7 @@ export interface JWTPayload {
 /**
  * Generate a JWT token for a user
  */
-export async function generateToken(payload: JWTPayload): Promise<string> {
+export async function generateToken(payload: UserTokenPayload): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -27,10 +27,10 @@ export async function generateToken(payload: JWTPayload): Promise<string> {
 /**
  * Verify and decode a JWT token
  */
-export async function verifyToken(token: string): Promise<JWTPayload | null> {
+export async function verifyToken(token: string): Promise<UserTokenPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as JWTPayload;
+    return payload as UserTokenPayload;
   } catch (error) {
     return null;
   }
@@ -69,7 +69,7 @@ export async function clearAuthCookie() {
 /**
  * Get current user from cookie
  */
-export async function getCurrentUser(): Promise<JWTPayload | null> {
+export async function getCurrentUser(): Promise<UserTokenPayload | null> {
   const token = await getAuthCookie();
   if (!token) return null;
   return verifyToken(token);

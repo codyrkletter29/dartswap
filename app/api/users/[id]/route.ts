@@ -7,10 +7,10 @@ import mongoose from 'mongoose';
 // GET /api/users/[id] - Get public user profile and their listings
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(id)) {

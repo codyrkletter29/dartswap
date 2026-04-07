@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Passion Project</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="logo" href="#">MyProject</a>
+        <button class="nav-toggle" aria-label="Toggle navigation">☰</button>
+        <nav class="nav">
+          <a href="#about">About</a>
+          <a href="#projects">Projects</a>
+          <a href="#contact">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="container">
+          <h1>Build. Share. Inspire.</h1>
+          <p class="lead">A small collection of projects and ideas I care about.</p>
+          <p><a class="btn" href="#projects">Explore Projects</a></p>
+        </div>
+      </section>
+
+      <section class="about" id="about">
+        <div class="container about-grid">
+          <div class="about-text">
+            <h2>About</h2>
+            <p>I’m passionate about creating small apps and experiments that solve real problems and teach me new things. This site showcases a selection of those projects with short descriptions.</p>
+            <p>Mobile-first, accessible, and intentionally minimal — so ideas stand out.</p>
+          </div>
+          <div class="about-stats">
+            <div class="stat"><strong>10+</strong><span>Projects</span></div>
+            <div class="stat"><strong>5</strong><span>Years learning</span></div>
+            <div class="stat"><strong>1</strong><span>Passion</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="projects" id="projects">
+        <div class="container">
+          <h2>Gallery / Projects</h2>
+          <div class="grid">
+            <article class="card">
+              <div class="thumb" aria-hidden="true"></div>
+              <h3>Project One</h3>
+              <p>Short summary of the project and the problem it solves.</p>
+            </article>
+            <article class="card">
+              <div class="thumb" aria-hidden="true"></div>
+              <h3>Project Two</h3>
+              <p>Short summary of the project and the problem it solves.</p>
+            </article>
+            <article class="card">
+              <div class="thumb" aria-hidden="true"></div>
+              <h3>Project Three</h3>
+              <p>Short summary of the project and the problem it solves.</p>
+            </article>
+            <article class="card">
+              <div class="thumb" aria-hidden="true"></div>
+              <h3>Project Four</h3>
+              <p>Short summary of the project and the problem it solves.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="contact" id="contact">
+        <div class="container contact-inner">
+          <div>
+            <h2>Contact</h2>
+            <p>Interested in collaborating or want to say hi? Drop a message.</p>
+          </div>
+          <form id="contactForm" class="contact-form">
+            <label>
+              <span>Name</span>
+              <input type="text" name="name" required />
+            </label>
+            <label>
+              <span>Email</span>
+              <input type="email" name="email" required />
+            </label>
+            <label>
+              <span>Message</span>
+              <textarea name="message" rows="4" required></textarea>
+            </label>
+            <div>
+              <button class="btn" type="submit">Send</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">© <span id="year"></span> MyProject — Built with care.</div>
+    </footer>
+
+    <script src="/script.js"></script>
+  </body>
+</html>
