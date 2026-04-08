@@ -174,3 +174,164 @@ This is an automated message. Please do not reply to this email.
     return false;
   }
 }
+
+/**
+ * Generate a random 6-digit verification code
+ */
+export function generateVerificationCode(): string {
+  // Generate a random number between 100000 and 999999
+  const code = Math.floor(100000 + Math.random() * 900000);
+  return code.toString();
+}
+
+/**
+ * Send a verification email with a 6-digit code
+ */
+export async function sendVerificationEmail(
+  email: string,
+  name: string,
+  code: string
+): Promise<boolean> {
+  try {
+    console.log('=== EMAIL DEBUG INFO ===');
+    console.log('EMAIL_HOST:', process.env.EMAIL_HOST);
+    console.log('EMAIL_PORT:', process.env.EMAIL_PORT);
+    console.log('EMAIL_USER (SMTP Login):', process.env.EMAIL_USER);
+    console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '***configured***' : 'NOT SET');
+    console.log('EMAIL_FROM (Sender):', process.env.EMAIL_FROM || process.env.EMAIL_USER);
+    console.log('Recipient:', email);
+    
+    const transporter = createTransporter();
+    
+    if (!transporter) {
+      console.log('Email transporter not configured, skipping verification email');
+      return false;
+    }
+
+    // Use EMAIL_FROM if set (verified sender), otherwise fall back to EMAIL_USER
+    const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+    
+    const mailOptions = {
+      from: `"DartSwap" <${fromEmail}>`,
+      to: email,
+      subject: 'Verify your DartSwap account',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .header {
+                background-color: #00693e;
+                color: white;
+                padding: 20px;
+                text-align: center;
+                border-radius: 5px 5px 0 0;
+              }
+              .content {
+                background-color: #f9f9f9;
+                padding: 30px;
+                border: 1px solid #ddd;
+                border-top: none;
+                border-radius: 0 0 5px 5px;
+              }
+              .verification-code {
+                background-color: white;
+                padding: 20px;
+                border: 2px solid #00693e;
+                border-radius: 5px;
+                margin: 20px 0;
+                text-align: center;
+              }
+              .code {
+                font-size: 32px;
+                font-weight: bold;
+                color: #00693e;
+                letter-spacing: 8px;
+                font-family: 'Courier New', monospace;
+              }
+              .expiry-notice {
+                color: #666;
+                font-size: 14px;
+                margin-top: 10px;
+              }
+              a {
+                color: #00693e;
+              }
+              .footer {
+                text-align: center;
+                margin-top: 20px;
+                font-size: 12px;
+                color: #666;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>DartSwap</h1>
+              </div>
+              <div class="content">
+                <h2>Hi ${name},</h2>
+                <p>Welcome to DartSwap! Please use the verification code below to complete your account setup:</p>
+                <div class="verification-code">
+                  <div class="code">${code}</div>
+                  <div class="expiry-notice">This code expires in 10 minutes</div>
+                </div>
+                <p>If you didn't request this verification code, please ignore this email.</p>
+              </div>
+              <div class="footer">
+                <p>This is an automated message. Please do not reply to this email.</p>
+                <p>&copy; ${new Date().getFullYear()} DartSwap. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `,
+      text: `Hi ${name},
+
+Welcome to DartSwap! Please use the verification code below to complete your account setup:
+
+Verification Code: ${code}
+
+This code expires in 10 minutes.
+
+If you didn't request this verification code, please ignore this email.
+
+This is an automated message. Please do not reply to this email.
+
+© ${new Date().getFullYear()} DartSwap. All rights reserved.`,
+    };
+
+    console.log('Attempting to send verification email...');
+    const info = await transporter.sendMail(mailOptions);
+    console.log('=== EMAIL SEND RESULT ===');
+    console.log('Message ID:', info.messageId);
+    console.log('Response:', info.response);
+    console.log('Accepted:', info.accepted);
+    console.log('Rejected:', info.rejected);
+    console.log('Pending:', info.pending);
+    console.log(`Verification email sent to ${email}`);
+    console.log('========================');
+    return true;
+  } catch (error) {
+    console.error('=== EMAIL ERROR ===');
+    console.error('Error sending verification email:', error);
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    console.error('===================');
+    return false;
+  }
+}

@@ -4,6 +4,7 @@ import User from '@/models/User';
 import { hashPassword } from '@/lib/password';
 import { generateToken, setAuthCookie } from '@/lib/auth';
 import { registerSchema } from '@/lib/validations';
+import { generateVerificationCode, sendVerificationEmail } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +33,27 @@ export async function POST(request: NextRequest) {
       email: validatedData.email,
       passwordHash,
     });
+
+    // Generate verification code and set verification fields
+    const verificationCode = generateVerificationCode();
+    const now = new Date();
+    const expiryTime = new Date(now.getTime() + 10 * 60 * 1000); // 10 minutes from now
+
+    user.verificationCode = verificationCode;
+    user.verificationCodeExpiry = expiryTime;
+    user.isVerified = false;
+    user.verificationAttempts = 0;
+    user.lastCodeSentAt = now;
+    await user.save();
+
+    // Send verification email (graceful degradation if it fails)
+    try {
+      await sendVerificationEmail(user.email, user.name, verificationCode);
+      console.log(`Verification email sent to ${user.email}`);
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      // Don't fail registration if email fails to send
+    }
 
     // Generate JWT token
     const token = await generateToken({

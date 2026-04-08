@@ -15,6 +15,10 @@ export const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+export const verifyEmailSchema = z.object({
+  code: z.string().regex(/^\d{6}$/, 'Code must be a 6-digit number'),
+});
+
 // Listing validations
 export const createListingSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title too long'),
@@ -41,6 +45,7 @@ export const sendMessageSchema = z.object({
 // Type exports
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
 export type SendMessageInput = z.infer<typeof sendMessageSchema>;

@@ -11,6 +11,7 @@ export interface UserTokenPayload extends JoseJWTPayload {
   userId: string;
   email: string;
   name: string;
+  isVerified?: boolean;
 }
 
 /**
@@ -73,6 +74,20 @@ export async function getCurrentUser(): Promise<UserTokenPayload | null> {
   const token = await getAuthCookie();
   if (!token) return null;
   return verifyToken(token);
+}
+
+/**
+ * Get full user data from database including verification status
+ */
+export async function getUserFromDatabase(userId: string) {
+  try {
+    await connectDB();
+    const user = await User.findById(userId).select('name email isVerified');
+    return user;
+  } catch (error) {
+    console.error('Error fetching user from database:', error);
+    return null;
+  }
 }
 
 /**

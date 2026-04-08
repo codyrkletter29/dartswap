@@ -22,7 +22,7 @@ export default function RegisterPage() {
 
     try {
       await register(name, email, password);
-      router.push('/');
+      router.push('/verify-email');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {

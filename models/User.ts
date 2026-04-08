@@ -7,6 +7,11 @@ export interface IUser extends Document {
   passwordHash: string;
   createdAt: Date;
   lastActiveAt: Date;
+  verificationCode?: string;
+  verificationCodeExpiry?: Date;
+  verificationAttempts: number;
+  isVerified: boolean;
+  lastCodeSentAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>({
@@ -36,10 +41,31 @@ const UserSchema = new Schema<IUser>({
     type: Date,
     default: Date.now,
   },
+  verificationCode: {
+    type: String,
+    select: false, // Don't include verification code in queries by default
+  },
+  verificationCodeExpiry: {
+    type: Date,
+  },
+  verificationAttempts: {
+    type: Number,
+    default: 0,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  lastCodeSentAt: {
+    type: Date,
+  },
 });
 
 // Create index on email for faster lookups
 UserSchema.index({ email: 1 });
+
+// Create index on isVerified for query performance
+UserSchema.index({ isVerified: 1 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 

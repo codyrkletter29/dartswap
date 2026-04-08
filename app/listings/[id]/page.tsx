@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface Listing {
   id: string;
@@ -33,6 +34,9 @@ export default function ListingDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [messageLoading, setMessageLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showHideModal, setShowHideModal] = useState(false);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -94,6 +98,53 @@ export default function ListingDetailPage() {
       alert(err instanceof Error ? err.message : 'Failed to start conversation');
     } finally {
       setMessageLoading(false);
+    }
+  };
+
+  const handleDeleteListing = async () => {
+    setShowDeleteModal(false);
+    setActionLoading(true);
+    try {
+      const response = await fetch(`/api/listings/${listing?.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete listing');
+      }
+
+      router.push('/my-listings');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to delete listing');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleToggleHidden = async () => {
+    if (!listing) return;
+
+    setShowHideModal(false);
+    const newStatus = listing.status === 'hidden' ? 'active' : 'hidden';
+
+    setActionLoading(true);
+    try {
+      const response = await fetch(`/api/listings/${listing.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update listing');
+      }
+
+      const data = await response.json();
+      setListing(data.listing);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to update listing');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -160,7 +211,36 @@ export default function ListingDetailPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Delete Listing"
+        message="Are you sure you want to delete this listing? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={handleDeleteListing}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+
+      {/* Hide/Unhide Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showHideModal}
+        title={listing?.status === 'hidden' ? 'Unhide Listing' : 'Hide Listing'}
+        message={
+          listing?.status === 'hidden'
+            ? 'Unhide this listing? It will be visible to other users again.'
+            : 'Hide this listing? It will no longer be visible to other users, but you can unhide it later.'
+        }
+        confirmText={listing?.status === 'hidden' ? 'Unhide' : 'Hide'}
+        cancelText="Cancel"
+        variant="warning"
+        onConfirm={handleToggleHidden}
+        onCancel={() => setShowHideModal(false)}
+      />
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back button */}
       <Link
         href="/"
@@ -184,15 +264,18 @@ export default function ListingDetailPage() {
 
       <div className="card">
         {/* Image Gallery */}
-        <div className="relative h-96 bg-border rounded-lg mb-6 overflow-hidden group">
+        <div className="relative w-full bg-border rounded-lg mb-6 overflow-hidden group">
           {hasImages ? (
             <>
-              <Image
-                src={displayImages[currentImageIndex]}
-                alt={`${listing.title} - Image ${currentImageIndex + 1}`}
-                fill
-                className="object-cover"
-              />
+              <div className="relative w-full" style={{ paddingBottom: '75%' }}>
+                <Image
+                  src={displayImages[currentImageIndex]}
+                  alt={`${listing.title} - Image ${currentImageIndex + 1}`}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
               {/* Image navigation - only show if multiple images */}
               {displayImages.length > 1 && (
                 <>
@@ -289,27 +372,86 @@ export default function ListingDetailPage() {
 
             {/* Message Button - Always visible with appropriate state */}
             {isOwnListing ? (
-              <Link
-                href={`/listings/${listing.id}/edit`}
-                className="btn-secondary"
-              >
-                <span className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <Link
+                    href={`/listings/${listing.id}/edit`}
+                    className="btn-secondary"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  Edit Listing
-                </span>
-              </Link>
+                    <span className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                        />
+                      </svg>
+                      Edit
+                    </span>
+                  </Link>
+                  <button
+                    onClick={() => setShowHideModal(true)}
+                    disabled={actionLoading}
+                    className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="flex items-center gap-2">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        {listing.status === 'hidden' ? (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        ) : (
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                          />
+                        )}
+                      </svg>
+                      {listing.status === 'hidden' ? 'Unhide' : 'Hide'}
+                    </span>
+                  </button>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowDeleteModal(true)}
+                    disabled={actionLoading}
+                    className="btn-secondary bg-error hover:bg-red-600 text-white border-error disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                      Delete Listing
+                    </span>
+                  </button>
+                </div>
+              </div>
             ) : listing.status === 'sold' ? (
               <button
                 disabled
@@ -403,5 +545,6 @@ export default function ListingDetailPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

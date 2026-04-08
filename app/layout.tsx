@@ -6,6 +6,11 @@ import Navbar from '@/components/Navbar';
 export const metadata: Metadata = {
   title: 'DartSwap - Dartmouth Student Marketplace',
   description: 'Buy and sell items within the Dartmouth community',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export default function RootLayout({

@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
+    "clear-db": "tsx scripts/clear-db.ts",
     "test-email": "tsx scripts/test-email.ts"
   },
   "dependencies": {

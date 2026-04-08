@@ -149,3 +149,63 @@ export async function PUT(
     );
   }
 }
+
+// DELETE /api/listings/[id] - Delete a listing (authenticated, owner only)
+export async function DELETE(
+  request: NextRequest,
+  context: any
+) {
+  try {
+    await connectDB();
+
+    // Check authentication
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { error: 'Invalid listing ID' },
+        { status: 400 }
+      );
+    }
+
+    // Find the listing
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return NextResponse.json(
+        { error: 'Listing not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check ownership
+    if (listing.seller.toString() !== user.userId) {
+      return NextResponse.json(
+        { error: 'You do not have permission to delete this listing' },
+        { status: 403 }
+      );
+    }
+
+    // Soft delete by setting status to 'deleted'
+    listing.status = 'deleted';
+    await listing.save();
+
+    return NextResponse.json({
+      message: 'Listing deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete listing error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete listing' },
+      { status: 500 }
+    );
+  }
+}

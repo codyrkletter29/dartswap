@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
+import ImageCropper from '@/components/ImageCropper';
+import VerificationGuard from '@/components/VerificationGuard';
 
 interface ImagePreview {
   dataUrl: string;
@@ -18,75 +19,69 @@ export default function SellPage() {
   const [images, setImages] = useState<ImagePreview[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [cropperImage, setCropperImage] = useState<string | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   
-  const { user, loading: authLoading, mounted } = useAuth();
   const router = useRouter();
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (mounted && !authLoading && !user) {
-      router.push('/login?returnUrl=/sell');
-    }
-  }, [user, authLoading, mounted, router]);
-
-  // Show loading state while checking auth
-  if (!mounted || authLoading) {
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-        <div className="text-text-secondary">Loading...</div>
-      </div>
-    );
-  }
-
-  // Don't render form if not authenticated
-  if (!user) {
-    return null;
-  }
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    const newImages: ImagePreview[] = [];
-    const maxSize = 1024 * 1024; // 1MB in bytes
+    const file = files[0]; // Take only the first file for cropping
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes (before cropping)
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // Validate file size
-      if (file.size > maxSize) {
-        setError(`Image "${file.name}" is too large. Maximum size is 1MB.`);
-        continue;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError(`File "${file.name}" is not an image.`);
-        continue;
-      }
-
-      // Check if adding this image would exceed the limit
-      if (images.length + newImages.length >= 4) {
-        setError('Maximum 4 images allowed.');
-        break;
-      }
-
-      // Convert to base64
-      try {
-        const dataUrl = await fileToBase64(file);
-        newImages.push({ dataUrl, file });
-      } catch (err) {
-        setError(`Failed to process image "${file.name}".`);
-      }
+    // Validate file size
+    if (file.size > maxSize) {
+      setError(`Image "${file.name}" is too large. Maximum size is 5MB.`);
+      e.target.value = '';
+      return;
     }
 
-    if (newImages.length > 0) {
-      setImages([...images, ...newImages]);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError(`File "${file.name}" is not an image.`);
+      e.target.value = '';
+      return;
+    }
+
+    // Check if adding this image would exceed the limit
+    if (images.length >= 4) {
+      setError('Maximum 4 images allowed.');
+      e.target.value = '';
+      return;
+    }
+
+    // Convert to base64 and open cropper
+    try {
+      const dataUrl = await fileToBase64(file);
+      setCropperImage(dataUrl);
+      setPendingImageFile(file);
       setError('');
+    } catch (err) {
+      setError(`Failed to process image "${file.name}".`);
     }
 
     // Reset input
     e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedImageUrl: string) => {
+    if (pendingImageFile) {
+      // Create a new File object from the cropped image
+      const newImage: ImagePreview = {
+        dataUrl: croppedImageUrl,
+        file: pendingImageFile,
+      };
+      setImages([...images, newImage]);
+    }
+    setCropperImage(null);
+    setPendingImageFile(null);
+  };
+
+  const handleCropCancel = () => {
+    setCropperImage(null);
+    setPendingImageFile(null);
   };
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -152,8 +147,18 @@ export default function SellPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <VerificationGuard>
+      <>
+        {cropperImage && (
+          <ImageCropper
+            imageUrl={cropperImage}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        )}
+        
+        <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
+        <div className="max-w-2xl mx-auto">
         <div className="card">
           <h1 className="text-3xl font-bold text-text mb-2">
             Create New Listing
@@ -337,8 +342,10 @@ export default function SellPage() {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
-    </div>
+      </>
+    </VerificationGuard>
   );
 }

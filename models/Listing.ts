@@ -10,7 +10,7 @@ export interface IListing extends Document {
   imageUrl?: string;
   images?: string[];
   seller: mongoose.Types.ObjectId | IUser;
-  status: 'active' | 'sold' | 'deleted';
+  status: 'active' | 'sold' | 'deleted' | 'hidden';
   createdAt: Date;
 }
 
@@ -57,7 +57,7 @@ const ListingSchema = new Schema<IListing>({
   },
   status: {
     type: String,
-    enum: ['active', 'sold', 'deleted'],
+    enum: ['active', 'sold', 'deleted', 'hidden'],
     default: 'active',
   },
   createdAt: {

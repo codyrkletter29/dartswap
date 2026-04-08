@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
+import VerificationGuard from '@/components/VerificationGuard';
 
 interface ImagePreview {
   dataUrl: string;
@@ -195,7 +196,8 @@ export default function EditListingPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
+    <VerificationGuard>
+      <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="card">
           <h1 className="text-3xl font-bold text-text mb-2">
@@ -402,5 +404,6 @@ export default function EditListingPage() {
         </div>
       </div>
     </div>
+    </VerificationGuard>
   );
 }

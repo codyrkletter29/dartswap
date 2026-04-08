@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import VerificationGuard from '@/components/VerificationGuard';
 
 interface Conversation {
   id: string;
@@ -21,21 +21,13 @@ interface Conversation {
 }
 
 export default function MessagesPage() {
-  const router = useRouter();
-  const { user, loading: authLoading, mounted } = useAuth();
+  const { user } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Wait for auth context to be mounted and finish loading
-    if (!mounted || authLoading) {
-      return;
-    }
-
-    // Redirect unauthenticated users to login with return URL
     if (!user) {
-      router.push('/login?returnUrl=/messages');
       return;
     }
 
@@ -45,11 +37,6 @@ export default function MessagesPage() {
         const response = await fetch('/api/conversations');
         
         if (!response.ok) {
-          // Handle 401 specifically - redirect to login
-          if (response.status === 401) {
-            router.push('/login?returnUrl=/messages');
-            return;
-          }
           throw new Error('Failed to fetch conversations');
         }
 
@@ -63,7 +50,7 @@ export default function MessagesPage() {
     };
 
     fetchConversations();
-  }, [user, authLoading, mounted, router]);
+  }, [user]);
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -82,51 +69,50 @@ export default function MessagesPage() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  // Show loading state while checking authentication or fetching conversations
-  if (authLoading || !mounted || loading) {
+  if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-text mb-6">Messages</h1>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card animate-pulse">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-border rounded-full"></div>
-                <div className="flex-1">
-                  <div className="h-5 bg-border rounded w-1/3 mb-2"></div>
-                  <div className="h-4 bg-border rounded w-2/3"></div>
+      <VerificationGuard>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-3xl font-bold text-text mb-6">Messages</h1>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="card animate-pulse">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-border rounded-full"></div>
+                  <div className="flex-1">
+                    <div className="h-5 bg-border rounded w-1/3 mb-2"></div>
+                    <div className="h-4 bg-border rounded w-2/3"></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </VerificationGuard>
     );
-  }
-
-  // Don't render content if user is not authenticated
-  if (!user) {
-    return null;
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="card text-center">
-          <h2 className="text-2xl font-bold text-text mb-4">{error}</h2>
-          <button
-            onClick={() => window.location.reload()}
-            className="btn-primary"
-          >
-            Try Again
-          </button>
+      <VerificationGuard>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="card text-center">
+            <h2 className="text-2xl font-bold text-text mb-4">{error}</h2>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-primary"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
-      </div>
+      </VerificationGuard>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <VerificationGuard>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-text">Messages</h1>
         <Link href="/" className="text-primary hover:text-primaryHover transition-colors">
@@ -208,6 +194,7 @@ export default function MessagesPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </VerificationGuard>
   );
 }

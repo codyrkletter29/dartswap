@@ -46,6 +46,19 @@ function LoginPageContent() {
 
     try {
       await login(email, password);
+      
+      // Refresh user data to get verification status
+      const response = await fetch('/api/auth/me');
+      if (response.ok) {
+        const data = await response.json();
+        
+        // If user is not verified, redirect to verification page
+        if (!data.user.isVerified) {
+          router.push('/verify-email');
+          return;
+        }
+      }
+      
       router.push(redirect);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');

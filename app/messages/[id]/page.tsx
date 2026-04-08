@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import VerificationGuard from '@/components/VerificationGuard';
 
 interface Message {
   id: string;
@@ -18,7 +19,6 @@ interface Message {
 
 export default function MessagesPage() {
   const params = useParams();
-  const router = useRouter();
   const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,6 @@ export default function MessagesPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
       return;
     }
 
@@ -53,7 +52,7 @@ export default function MessagesPage() {
     if (params.id) {
       fetchMessages();
     }
-  }, [params.id, user, router]);
+  }, [params.id, user]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -87,36 +86,37 @@ export default function MessagesPage() {
     }
   };
 
-  if (!user) {
-    return null;
-  }
-
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-border rounded w-1/4 mb-6"></div>
-          <div className="card h-96"></div>
+      <VerificationGuard>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-border rounded w-1/4 mb-6"></div>
+            <div className="card h-96"></div>
+          </div>
         </div>
-      </div>
+      </VerificationGuard>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="card text-center">
-          <h2 className="text-2xl font-bold text-text mb-4">{error}</h2>
-          <Link href="/" className="btn-primary inline-block">
-            Back to Listings
-          </Link>
+      <VerificationGuard>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="card text-center">
+            <h2 className="text-2xl font-bold text-text mb-4">{error}</h2>
+            <Link href="/" className="btn-primary inline-block">
+              Back to Listings
+            </Link>
+          </div>
         </div>
-      </div>
+      </VerificationGuard>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <VerificationGuard>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back button */}
       <Link
         href="/"
@@ -149,7 +149,7 @@ export default function MessagesPage() {
             </div>
           ) : (
             messages.map((message) => {
-              const isOwnMessage = message.sender.id === user.id;
+              const isOwnMessage = message.sender.id === user?.id;
               return (
                 <div
                   key={message.id}
@@ -240,6 +240,7 @@ export default function MessagesPage() {
           </button>
         </form>
       </div>
-    </div>
+      </div>
+    </VerificationGuard>
   );
 }

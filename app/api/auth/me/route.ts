@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, getUserFromDatabase } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -12,11 +12,22 @@ export async function GET() {
       );
     }
 
+    // Fetch full user data from database to get verification status
+    const dbUser = await getUserFromDatabase(user.userId);
+    
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({
       user: {
         id: user.userId,
         name: user.name,
         email: user.email,
+        isVerified: dbUser.isVerified,
       },
     });
   } catch (error) {
