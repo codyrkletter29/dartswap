@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
+import ImageCropper from '@/components/ImageCropper';
 import VerificationGuard from '@/components/VerificationGuard';
 
 interface ImagePreview {
@@ -25,6 +26,9 @@ export default function EditListingPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [cropperImage, setCropperImage] = useState<string | null>(null);
+  const [cropImageIndex, setCropImageIndex] = useState<number | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -90,44 +94,41 @@ export default function EditListingPage() {
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
 
-    const newImages: ImagePreview[] = [];
-    const maxSize = 1024 * 1024; // 1MB in bytes
+    const file = files[0]; // Take only the first file for cropping
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes (before cropping)
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      // Validate file size
-      if (file.size > maxSize) {
-        setError(`Image "${file.name}" is too large. Maximum size is 1MB.`);
-        continue;
-      }
-
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        setError(`File "${file.name}" is not an image.`);
-        continue;
-      }
-
-      // Check if adding this image would exceed the limit
-      if (images.length + newImages.length >= 4) {
-        setError('Maximum 4 images allowed.');
-        break;
-      }
-
-      // Convert to base64
-      try {
-        const dataUrl = await fileToBase64(file);
-        newImages.push({ dataUrl, file });
-      } catch (err) {
-        setError(`Failed to process image "${file.name}".`);
-      }
+    // Validate file size
+    if (file.size > maxSize) {
+      setError(`Image "${file.name}" is too large. Maximum size is 5MB.`);
+      e.target.value = '';
+      return;
     }
 
-    if (newImages.length > 0) {
-      setImages([...images, ...newImages]);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError(`File "${file.name}" is not an image.`);
+      e.target.value = '';
+      return;
+    }
+
+    // Check if adding this image would exceed the limit
+    if (images.length >= 4) {
+      setError('Maximum 4 images allowed.');
+      e.target.value = '';
+      return;
+    }
+
+    // Convert to base64 and open cropper
+    try {
+      const dataUrl = await fileToBase64(file);
+      setCropperImage(dataUrl);
+      setPendingImageFile(file);
+      setCropImageIndex(null); // This is a new image, not editing existing
       setError('');
+    } catch (err) {
+      setError(`Failed to process image "${file.name}".`);
     }
 
     // Reset input
@@ -141,6 +142,40 @@ export default function EditListingPage() {
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  };
+
+  const handleImageClick = (index: number) => {
+    // Open cropper with the clicked image
+    setCropperImage(images[index].dataUrl);
+    setCropImageIndex(index);
+    setPendingImageFile(null);
+  };
+
+  const handleCropComplete = (croppedImageUrl: string) => {
+    if (cropImageIndex !== null) {
+      // Re-cropping an existing image
+      const updatedImages = [...images];
+      updatedImages[cropImageIndex] = {
+        dataUrl: croppedImageUrl,
+      };
+      setImages(updatedImages);
+    } else if (pendingImageFile) {
+      // Adding a new image
+      const newImage: ImagePreview = {
+        dataUrl: croppedImageUrl,
+        file: pendingImageFile,
+      };
+      setImages([...images, newImage]);
+    }
+    setCropperImage(null);
+    setCropImageIndex(null);
+    setPendingImageFile(null);
+  };
+
+  const handleCropCancel = () => {
+    setCropperImage(null);
+    setCropImageIndex(null);
+    setPendingImageFile(null);
   };
 
   const removeImage = (index: number) => {
@@ -197,7 +232,16 @@ export default function EditListingPage() {
 
   return (
     <VerificationGuard>
-      <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
+      <>
+        {cropperImage && (
+          <ImageCropper
+            imageUrl={cropperImage}
+            onCropComplete={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        )}
+        
+        <div className="min-h-[calc(100vh-4rem)] py-8 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="card">
           <h1 className="text-3xl font-bold text-text mb-2">
@@ -325,18 +369,41 @@ export default function EditListingPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                   {images.map((img, index) => (
                     <div key={index} className="relative group">
-                      <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-surface-light">
+                      <div
+                        className="relative w-full aspect-square rounded-lg overflow-hidden bg-surface-light cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                        onClick={() => handleImageClick(index)}
+                        title="Click to re-crop image"
+                      >
                         <Image
                           src={img.dataUrl}
                           alt={`Preview ${index + 1}`}
                           fill
                           className="object-cover"
                         />
+                        {/* Edit icon overlay */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center">
+                          <svg
+                            className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                        </div>
                       </div>
                       <button
                         type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-error text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImage(index);
+                        }}
+                        className="absolute top-2 right-2 bg-error text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         aria-label="Remove image"
                       >
                         ×
@@ -404,6 +471,7 @@ export default function EditListingPage() {
         </div>
       </div>
     </div>
+      </>
     </VerificationGuard>
   );
 }

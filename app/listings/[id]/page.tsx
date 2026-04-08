@@ -263,16 +263,16 @@ export default function ListingDetailPage() {
       </Link>
 
       <div className="card">
-        {/* Image Gallery */}
+        {/* Image Gallery - Fixed 4:3 aspect ratio */}
         <div className="relative w-full bg-border rounded-lg mb-6 overflow-hidden group">
           {hasImages ? (
             <>
-              <div className="relative w-full" style={{ paddingBottom: '75%' }}>
+              <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
                 <Image
                   src={displayImages[currentImageIndex]}
                   alt={`${listing.title} - Image ${currentImageIndex + 1}`}
                   fill
-                  className="object-contain"
+                  className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>

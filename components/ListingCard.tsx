@@ -37,8 +37,8 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
   return (
     <Link href={`/listings/${listing.id}`} className="card hover:border-primary transition-colors cursor-pointer">
-      {/* Image */}
-      <div className="relative h-48 bg-border rounded-lg mb-4 overflow-hidden">
+      {/* Image - Fixed 4:3 aspect ratio */}
+      <div className="relative w-full bg-border rounded-lg mb-4 overflow-hidden" style={{ aspectRatio: '4/3' }}>
         {displayImage ? (
           <Image
             src={displayImage}

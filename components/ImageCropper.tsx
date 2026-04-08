@@ -10,11 +10,14 @@ interface ImageCropperProps {
 }
 
 export default function ImageCropper({ imageUrl, onCropComplete, onCancel }: ImageCropperProps) {
-  const [crop, setCrop] = useState({ x: 0, y: 0, width: 100, height: 100 });
+  // Fixed aspect ratio for all photos (4:3 standard photo aspect ratio)
+  const ASPECT_RATIO = 4 / 3;
+  
+  const [crop, setCrop] = useState({ x: 0, y: 0, size: 200 }); // size controls both width and height based on aspect ratio
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, size: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -29,8 +32,7 @@ export default function ImageCropper({ imageUrl, onCropComplete, onCancel }: Ima
     setResizeStart({
       x: e.clientX,
       y: e.clientY,
-      width: crop.width,
-      height: crop.height,
+      size: crop.size,
     });
   };
 
@@ -38,19 +40,22 @@ export default function ImageCropper({ imageUrl, onCropComplete, onCancel }: Ima
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
+    const cropWidth = crop.size;
+    const cropHeight = crop.size / ASPECT_RATIO;
 
     if (isDragging) {
-      const newX = Math.max(0, Math.min(e.clientX - dragStart.x, rect.width - crop.width));
-      const newY = Math.max(0, Math.min(e.clientY - dragStart.y, rect.height - crop.height));
+      const newX = Math.max(0, Math.min(e.clientX - dragStart.x, rect.width - cropWidth));
+      const newY = Math.max(0, Math.min(e.clientY - dragStart.y, rect.height - cropHeight));
       setCrop({ ...crop, x: newX, y: newY });
     } else if (isResizing) {
       const deltaX = e.clientX - resizeStart.x;
       const deltaY = e.clientY - resizeStart.y;
       
-      const newWidth = Math.max(50, Math.min(resizeStart.width + deltaX, rect.width - crop.x));
-      const newHeight = Math.max(50, Math.min(resizeStart.height + deltaY, rect.height - crop.y));
+      // Use the larger delta to maintain aspect ratio
+      const delta = Math.max(deltaX, deltaY * ASPECT_RATIO);
+      const newSize = Math.max(100, Math.min(resizeStart.size + delta, Math.min(rect.width - crop.x, (rect.height - crop.y) * ASPECT_RATIO)));
       
-      setCrop({ ...crop, width: newWidth, height: newHeight });
+      setCrop({ ...crop, size: newSize });
     }
   };
 
@@ -73,21 +78,28 @@ export default function ImageCropper({ imageUrl, onCropComplete, onCancel }: Ima
     const scaleX = img.naturalWidth / container.offsetWidth;
     const scaleY = img.naturalHeight / container.offsetHeight;
 
-    // Set canvas size to cropped area
-    canvas.width = crop.width * scaleX;
-    canvas.height = crop.height * scaleY;
+    const cropWidth = crop.size;
+    const cropHeight = crop.size / ASPECT_RATIO;
+
+    // Set canvas size to fixed aspect ratio (4:3)
+    // Use a standard size for consistency
+    const outputWidth = 1200;
+    const outputHeight = 900; // 1200 / (4/3) = 900
+    
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
 
     // Draw cropped image
     ctx.drawImage(
       img,
       crop.x * scaleX,
       crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
+      cropWidth * scaleX,
+      cropHeight * scaleY,
       0,
       0,
-      canvas.width,
-      canvas.height
+      outputWidth,
+      outputHeight
     );
 
     // Convert to base64
@@ -130,8 +142,8 @@ export default function ImageCropper({ imageUrl, onCropComplete, onCancel }: Ima
               style={{
                 left: `${crop.x}px`,
                 top: `${crop.y}px`,
-                width: `${crop.width}px`,
-                height: `${crop.height}px`,
+                width: `${crop.size}px`,
+                height: `${crop.size / ASPECT_RATIO}px`,
               }}
               onMouseDown={handleMouseDown}
             >
