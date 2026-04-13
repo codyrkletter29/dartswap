@@ -77,7 +77,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           {listing.title}
         </h3>
         <p className="text-2xl font-bold text-primary mb-2">
-          {listing.price === 0 ? 'Free' : `$${listing.price}`}
+          {listing.price === 0 ? 'Free' : `$${listing.price.toFixed(2)}`}
         </p>
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-secondary">{listing.category}</span>
@@ -87,7 +87,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           >
             {/* Profile Photo or Placeholder */}
             {listing.seller.profilePhoto ? (
-              <div className="relative w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+              <div className="relative w-6 h-6 aspect-square rounded-full overflow-hidden flex-shrink-0">
                 <Image
                   src={listing.seller.profilePhoto}
                   alt={sellerDisplayName}

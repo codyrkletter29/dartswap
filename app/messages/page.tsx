@@ -155,7 +155,7 @@ export default function MessagesPage() {
             >
               <div className="flex items-start gap-4">
                 {/* Avatar */}
-                <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+                <div className="w-12 h-12 aspect-square bg-primary rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
                   {conversation.otherParticipant?.name.charAt(0).toUpperCase() || '?'}
                 </div>
 

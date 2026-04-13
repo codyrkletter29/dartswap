@@ -325,7 +325,7 @@ export default function ProfilePage() {
                 <img
                   src={user.profilePhoto}
                   alt={user.name}
-                  className="w-24 h-24 rounded-full object-cover border-2 border-border"
+                  className="w-24 h-24 aspect-square rounded-full object-cover border-2 border-border"
                 />
               ) : (
                 <div className="w-24 h-24 rounded-full bg-primary bg-opacity-20 flex items-center justify-center border-2 border-border">

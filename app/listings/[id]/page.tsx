@@ -333,7 +333,7 @@ export default function ListingDetailPage() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-text mb-2">{listing.title}</h1>
           <p className="text-4xl font-bold text-primary">
-            {listing.price === 0 ? 'Free' : `$${listing.price}`}
+            {listing.price === 0 ? 'Free' : `$${listing.price.toFixed(2)}`}
           </p>
         </div>
 
@@ -360,7 +360,7 @@ export default function ListingDetailPage() {
             <div className="flex items-center gap-4">
               {/* Profile Photo or Placeholder */}
               {listing.seller.profilePhoto ? (
-                <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                <div className="relative w-16 h-16 aspect-square rounded-full overflow-hidden flex-shrink-0">
                   <Image
                     src={listing.seller.profilePhoto}
                     alt={sellerDisplayName}

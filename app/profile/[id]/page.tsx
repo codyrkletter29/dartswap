@@ -147,7 +147,7 @@ export default function UserProfilePage() {
       {/* User Header */}
       <div className="card mb-8">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
+          <div className="w-20 h-20 aspect-square bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
             {user.name.charAt(0).toUpperCase()}
           </div>
           <div>
