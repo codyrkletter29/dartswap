@@ -125,8 +125,8 @@ export default function MessagesPage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="card text-center">
             <h2 className="text-2xl font-bold text-text mb-4">{error}</h2>
-            <Link href="/" className="btn-primary inline-block">
-              Back to Listings
+            <Link href="/messages" className="btn-primary inline-block">
+              Back to Messages
             </Link>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function MessagesPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back button */}
       <Link
-        href="/"
+        href="/messages"
         className="inline-flex items-center text-primary hover:text-primary-dark mb-6 transition-colors"
       >
         <svg
@@ -155,7 +155,7 @@ export default function MessagesPage() {
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Back to Listings
+        Back to Messages
       </Link>
 
       <div className="card">
