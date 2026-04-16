@@ -59,6 +59,7 @@ export async function GET(
         price: listing.price,
         category: listing.category,
         imageUrl: listing.imageUrl,
+        images: listing.images,
         status: listing.status,
         createdAt: listing.createdAt,
       })),

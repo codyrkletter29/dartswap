@@ -184,6 +184,8 @@ export default function UserProfilePage() {
                   seller: {
                     id: user.id,
                     name: user.name,
+                    username: user.username,
+                    profilePhoto: user.profilePhoto,
                   },
                 }}
               />
@@ -207,6 +209,8 @@ export default function UserProfilePage() {
                   seller: {
                     id: user.id,
                     name: user.name,
+                    username: user.username,
+                    profilePhoto: user.profilePhoto,
                   },
                 }}
               />
