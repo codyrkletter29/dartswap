@@ -3,15 +3,53 @@
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+interface Conversation {
+  id: string;
+  unreadCount: number;
+}
 
 export default function Navbar() {
   const { user, logout, loading, mounted } = useAuth();
   const router = useRouter();
+  const [totalUnread, setTotalUnread] = useState(0);
 
   const handleLogout = async () => {
     await logout();
     router.push('/');
   };
+
+  // Fetch unread message count
+  useEffect(() => {
+    if (!user) {
+      setTotalUnread(0);
+      return;
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch('/api/conversations');
+        if (response.ok) {
+          const data = await response.json();
+          const total = data.conversations.reduce(
+            (sum: number, conv: Conversation) => sum + conv.unreadCount,
+            0
+          );
+          setTotalUnread(total);
+        }
+      } catch (err) {
+        console.error('Failed to fetch unread count:', err);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   return (
     <nav className="bg-surface border-b border-border">
@@ -41,9 +79,12 @@ export default function Navbar() {
                     </Link>
                     <Link
                       href="/messages"
-                      className="text-text hover:text-primary transition-colors"
+                      className="text-text hover:text-primary transition-colors relative"
                     >
                       Messages
+                      {totalUnread > 0 && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                      )}
                     </Link>
                     <Link
                       href="/profile"

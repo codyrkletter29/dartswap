@@ -54,6 +54,26 @@ export default function MessagesPage() {
     }
   }, [params.id, user]);
 
+  // Mark messages as read when conversation is opened
+  useEffect(() => {
+    if (!user || !params.id) {
+      return;
+    }
+
+    const markAsRead = async () => {
+      try {
+        await fetch(`/api/conversations/${params.id}/read`, {
+          method: 'PUT',
+        });
+        // Silently fail - don't block UI if marking as read fails
+      } catch (err) {
+        console.error('Failed to mark messages as read:', err);
+      }
+    };
+
+    markAsRead();
+  }, [params.id, user]);
+
   useEffect(() => {
     // Scroll to bottom when messages change
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -8,6 +8,8 @@ import ListingCard from '@/components/ListingCard';
 interface User {
   id: string;
   name: string;
+  username?: string;
+  profilePhoto?: string;
   createdAt: string;
 }
 
@@ -147,11 +149,19 @@ export default function UserProfilePage() {
       {/* User Header */}
       <div className="card mb-8">
         <div className="flex items-center gap-6">
-          <div className="w-20 h-20 aspect-square bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
-            {user.name.charAt(0).toUpperCase()}
-          </div>
+          {user.profilePhoto ? (
+            <img
+              src={user.profilePhoto}
+              alt={user.username || user.name}
+              className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+            />
+          ) : (
+            <div className="w-20 h-20 aspect-square bg-primary rounded-full flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
+              {(user.username || user.name).charAt(0).toUpperCase()}
+            </div>
+          )}
           <div>
-            <h1 className="text-3xl font-bold text-text mb-2">{user.name}</h1>
+            <h1 className="text-3xl font-bold text-text mb-2">{user.username || user.name}</h1>
             <p className="text-text-secondary">
               Member since {memberSince}
             </p>
