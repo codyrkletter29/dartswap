@@ -20,6 +20,7 @@ interface ListingCardProps {
       profilePhoto?: string;
     };
     status: string;
+    createdAt: string;
     gender?: 'mens' | 'womens' | 'unisex';
     clothingSubcategory?: 'tops' | 'bottoms' | 'dresses-skirts' | 'shoes' | 'outerwear';
     size?: string;
@@ -51,6 +52,41 @@ export default function ListingCard({ listing }: ListingCardProps) {
     .toUpperCase()
     .slice(0, 2);
 
+  // Format timestamp
+  const formatTimeAgo = (dateString: string): string => {
+    const now = new Date();
+    const createdDate = new Date(dateString);
+    const diffMs = now.getTime() - createdDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    // Check if posted today
+    const isToday = now.toDateString() === createdDate.toDateString();
+    if (isToday) {
+      return 'posted today';
+    }
+    
+    // Less than 7 days
+    if (diffDays < 7) {
+      return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+    }
+    
+    // Less than 4 weeks (28 days)
+    if (diffDays < 28) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} ${weeks === 1 ? 'wk' : 'wks'} ago`;
+    }
+    
+    // Less than 12 months (365 days)
+    if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'} ago`;
+    }
+    
+    // 1+ years
+    const years = Math.floor(diffDays / 365);
+    return `${years} ${years === 1 ? 'yr' : 'yrs'} ago`;
+  };
+
   return (
     <Link href={`/listings/${listing.id}`} className="card hover:border-primary transition-colors cursor-pointer">
       {/* Image - Fixed 4:3 aspect ratio */}
@@ -79,6 +115,9 @@ export default function ListingCard({ listing }: ListingCardProps) {
         <h3 className="text-lg font-semibold text-text mb-1 truncate">
           {listing.title}
         </h3>
+        <p className="text-xs text-text-secondary mb-2">
+          {formatTimeAgo(listing.createdAt)}
+        </p>
         <p className="text-2xl font-bold text-primary mb-2">
           {listing.price === 0 ? 'Free' : `$${listing.price.toFixed(2)}`}
         </p>
