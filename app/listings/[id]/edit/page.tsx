@@ -120,11 +120,11 @@ export default function EditListingPage() {
     if (!files || files.length === 0) return;
 
     const file = files[0]; // Take only the first file for cropping
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes (before cropping)
+    const maxSize = 15 * 1024 * 1024; // 15MB in bytes (before cropping)
 
     // Validate file size
     if (file.size > maxSize) {
-      setError(`Image "${file.name}" is too large. Maximum size is 5MB.`);
+      setError(`Image "${file.name}" is too large. Maximum size is 15MB.`);
       e.target.value = '';
       return;
     }
