@@ -6,12 +6,33 @@ import Footer from '@/components/Footer';
 import UsernameSetupWrapper from '@/components/UsernameSetupWrapper';
 
 export const metadata: Metadata = {
-  title: 'DartSwap - Dartmouth Student Marketplace',
-  description: 'Buy and sell items within the Dartmouth community',
+  title: 'DartSwap - Buy. Sell. Repeat.',
+  description: "Buy. Sell. Repeat. - Dartmouth's Clothing Marketplace",
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
     ],
+  },
+  openGraph: {
+    title: 'DartSwap',
+    description: "Buy. Sell. Repeat. - Dartmouth's Clothing Marketplace",
+    url: 'https://dartmouthswap.com',
+    siteName: 'DartSwap',
+    images: [
+      {
+        url: 'https://dartmouthswap.com/api/og',
+        width: 1200,
+        height: 630,
+        alt: 'DartSwap - Buy. Sell. Repeat.',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'DartSwap',
+    description: "Buy. Sell. Repeat. - Dartmouth's Clothing Marketplace",
+    images: ['https://dartmouthswap.com/api/og'],
   },
 };
 
