@@ -65,7 +65,8 @@ export default function MessagesPage() {
         await fetch(`/api/conversations/${params.id}/read`, {
           method: 'PUT',
         });
-        // Silently fail - don't block UI if marking as read fails
+        // Notify the Navbar to refresh unread count immediately
+        window.dispatchEvent(new Event('unread-updated'));
       } catch (err) {
         console.error('Failed to mark messages as read:', err);
       }
@@ -162,7 +163,7 @@ export default function MessagesPage() {
         <h1 className="text-2xl font-bold text-text mb-6">Messages</h1>
 
         {/* Messages container */}
-        <div className="h-96 overflow-y-auto mb-6 space-y-4 p-4 bg-background rounded-lg">
+        <div className="h-72 sm:h-96 overflow-y-auto mb-4 space-y-4 p-4 bg-background rounded-lg">
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full text-text-secondary">
               No messages yet. Start the conversation!
